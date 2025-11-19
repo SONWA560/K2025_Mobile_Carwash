@@ -7,68 +7,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { NavBar } from '@/components/ui/tubelight-navbar'
 import NeuralNetworkHero from '@/components/ui/neural-network-hero'
-import PaginationAnt from '@/components/ui/pagination-ant'
+import GlossIQPricing from '@/components/glossiq-pricing'
 import { 
-  Droplets, 
-  Sparkles, 
-  Shield, 
-  Sun, 
-  CircleDollarSign,
   Calendar,
   Phone,
   MapPin,
   Star,
+  Droplets,
 
   Home,
   CalendarDays,
   User
 } from 'lucide-react'
 
-const services = [
-  // Basic Services
-  {
-    id: 'exterior-basic',
-    name: 'Exterior Wash',
-    description: 'Pre-rinse hand wash, tyre and rim clean, windows quick dry, light wax spray (optional)',
-    price: { small: { min: 120, max: 150 }, suv: { min: 150, max: 180 } },
-    duration: { min: 30, max: 45 },
-    category: 'basic',
-    tier: 'basic',
-    icon: Droplets
-  },
-  {
-    id: 'interior-basic',
-    name: 'Interior Wash',
-    description: 'Vacuuming, wipe down of surfaces, windows, door panels',
-    price: { small: { min: 100, max: 130 }, suv: { min: 130, max: 260 } },
-    duration: { min: 25, max: 40 },
-    category: 'basic',
-    tier: 'basic',
-    icon: Sparkles
-  },
-  // Standard Package
-  {
-    id: 'standard-full',
-    name: 'Standard Full Package',
-    description: 'Full exterior wash, tyre shine, full vacuum, dashboard and panel clean, windows inside and out',
-    price: { small: { min: 250, max: 300 }, suv: { min: 300, max: 350 } },
-    duration: { min: 60, max: 90 },
-    category: 'standard',
-    tier: 'standard',
-    icon: Shield
-  },
-  // Premium Services
-  {
-    id: 'premium-detailing',
-    name: 'Deep Interior Detailing',
-    description: 'Seat deep cleaning, shampooing, deep vacuuming, odour removal, detail cleaning in corners and panels',
-    price: { min: 400, max: 600 },
-    duration: { min: 120, max: 180 },
-    category: 'premium',
-    tier: 'premium',
-    icon: Sun
-  }
-]
+
 
 const navItems = [
   { name: "Home", url: "/", icon: Home },
@@ -78,14 +30,6 @@ const navItems = [
 ]
 
 export default function HomePage() {
-  const [servicePage, setServicePage] = useState(1)
-  const servicesPerPage = 6
-  
-  const paginatedServices = services.slice(
-    (servicePage - 1) * servicesPerPage,
-    servicePage * servicesPerPage
-  )
-
   return (
     <div className="min-h-screen">
       {/* Tubelight Navbar */}
@@ -118,9 +62,13 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
             <div className="flex flex-col items-center">
-              <Star className="h-8 w-8 text-yellow-500 mb-2" />
-              <h3 className="font-semibold">4.9/5 Rating</h3>
-              <p className="text-gray-600">500+ Happy Customers</p>
+              <div className="h-8 w-8 mb-2 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-glossiq-primary flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                </div>
+              </div>
+              <h3 className="font-semibold">Insured</h3>
+              <p className="text-gray-600">Fully Covered</p>
             </div>
             <div className="flex flex-col items-center">
               <MapPin className="h-8 w-8 text-glossiq-primary mb-2" />
@@ -128,80 +76,25 @@ export default function HomePage() {
               <p className="text-gray-600">We Come to You</p>
             </div>
             <div className="flex flex-col items-center">
-              <Shield className="h-8 w-8 text-green-600 mb-2" />
-              <h3 className="font-semibold">Insured</h3>
-              <p className="text-gray-600">Fully Covered</p>
-            </div>
-            <div className="flex flex-col items-center">
               <Calendar className="h-8 w-8 text-glossiq-primary mb-2" />
               <h3 className="font-semibold">Flexible Scheduling</h3>
               <p className="text-gray-600">7 Days a Week</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <div className="h-8 w-8 mb-2 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-glossiq-primary flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
+                </div>
+              </div>
+              <h3 className="font-semibold">Insured</h3>
+              <p className="text-gray-600">Fully Covered</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
-            <p className="text-xl text-gray-600">Professional car care solutions for every need</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {paginatedServices.map((service) => {
-              const IconComponent = service.icon
-              return (
-                <Card key={service.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <IconComponent className="h-8 w-8 text-glossiq-primary" />
-                      <div>
-                        <CardTitle className="text-lg">{service.name}</CardTitle>
-                         <CardDescription>
-                           {typeof service.duration === 'object' 
-                             ? `${service.duration.min}-${service.duration.max} minutes`
-                             : `${service.duration} minutes`
-                           }
-                         </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                     <div className="flex justify-between items-center">
-                       <div>
-                         <span className="text-lg font-bold text-glossiq-primary">
-                           From R{typeof service.price === 'object' && 'min' in service.price ? service.price.min : service.price.small?.min || service.price.min}
-                         </span>
-                         <p className="text-sm text-gray-500">
-                           {typeof service.duration === 'object' 
-                             ? `${service.duration.min}-${service.duration.max} min`
-                             : `${service.duration} min`
-                           }
-                         </p>
-                       </div>
-            <Link href={`/booking?service=${service.id}`}>
-              <Button className="bg-glossiq-primary hover:bg-opacity-90">Book Now</Button>
-            </Link>
-                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-          
-          <PaginationAnt
-            current={servicePage}
-            total={services.length}
-            pageSize={servicesPerPage}
-            showSizeChanger={false}
-            showQuickJumper={false}
-            onChange={(page) => setServicePage(page)}
-          />
-        </div>
-      </section>
+      {/* GlossIQ Pricing Section */}
+      <GlossIQPricing />
 
 
 
