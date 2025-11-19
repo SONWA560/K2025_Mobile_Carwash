@@ -166,15 +166,14 @@ export default function GlossIQPricing({ vehicleType = 'small', onServiceSelect 
                   </CardContent>
 
                   <CardFooter className="mt-auto pt-4">
-                    <Button
-                      asChild
-                      className={`w-full ${service.popular ? 'bg-glossiq-primary hover:bg-opacity-90 text-white' : 'bg-glossiq-secondary hover:bg-opacity-90 text-glossiq-primary'}`}
-                      size="lg"
-                    >
-                      <Link href={`/booking?service=${service.id}`}>
+                    <Link href={`/booking?service=${service.id}`} className="w-full inline-block">
+                      <Button
+                        className={`w-full ${service.popular ? 'bg-glossiq-primary hover:bg-opacity-90 text-white' : 'bg-glossiq-secondary hover:bg-opacity-90 text-glossiq-primary'}`}
+                        size="lg"
+                      >
                         Book This Service
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                   </CardFooter>
                 </div>
               </Card>
