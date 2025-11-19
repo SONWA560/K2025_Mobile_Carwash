@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { NavBar } from '@/components/ui/tubelight-navbar'
 import NeuralNetworkHero from '@/components/ui/neural-network-hero'
@@ -12,9 +10,7 @@ import {
   Calendar,
   Phone,
   MapPin,
-  Star,
   Droplets,
-
   Home,
   CalendarDays,
   User

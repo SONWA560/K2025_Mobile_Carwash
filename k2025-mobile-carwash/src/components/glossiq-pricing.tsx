@@ -87,10 +87,9 @@ const services = [
 
 interface GlossIQPricingProps {
   vehicleType?: 'small' | 'suv'
-  onServiceSelect?: (serviceId: string) => void
 }
 
-export default function GlossIQPricing({ vehicleType = 'small', onServiceSelect }: GlossIQPricingProps) {
+export default function GlossIQPricing({ vehicleType = 'small' }: GlossIQPricingProps) {
   const getServicePrice = (service: any) => {
     if (typeof service.price === 'object' && 'min' in service.price && !('small' in service.price)) {
       return service.price.min // Premium service
@@ -165,8 +164,12 @@ export default function GlossIQPricing({ vehicleType = 'small', onServiceSelect 
                     </ul>
                   </CardContent>
 
-                  <CardFooter className="mt-auto pt-4">
-                    <Link href={`/booking?service=${service.id}`} className="w-full inline-block">
+                  <CardFooter className="mt-auto pt-4 relative z-10">
+                    <Link 
+                      href={`/booking?service=${service.id}`} 
+                      className="w-full block relative z-20"
+                      prefetch={true}
+                    >
                       <Button
                         className={`w-full ${service.popular ? 'bg-glossiq-primary hover:bg-opacity-90 text-white' : 'bg-glossiq-secondary hover:bg-opacity-90 text-glossiq-primary'}`}
                         size="lg"

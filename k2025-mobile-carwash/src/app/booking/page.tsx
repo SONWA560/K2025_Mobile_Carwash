@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,11 +13,11 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { CalendarIcon, Clock, MapPin, Droplets, Sparkles, Shield, Sun, ArrowLeft, Home, CalendarDays } from 'lucide-react'
+import { CalendarIcon, Clock, MapPin, Droplets, Sparkles, Shield, Sun, Home, CalendarDays } from 'lucide-react'
 import { format } from 'date-fns'
 import LocationSelector from '@/components/LocationSelector'
 import PaginationAnt from '@/components/ui/pagination-ant'
-import { generateTimeSlots, isTimeSlotAvailable, calculateBookingEndTime } from '@/lib/booking-utils'
+import { generateTimeSlots, calculateBookingEndTime } from '@/lib/booking-utils'
 import { NavBar } from '@/components/ui/tubelight-navbar'
 
 const services = [
@@ -87,9 +87,12 @@ const getTimeSlotsForService = (date: Date | undefined, duration: number, page: 
 }
 
 function BookingPageContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const [selectedServices, setSelectedServices] = useState<string[]>(searchParams?.get('service') ? [searchParams.get('service')!] : [])
+  const [selectedServices, setSelectedServices] = useState<string[]>(() => {
+    const serviceParam = searchParams?.get('service');
+    console.log('Service parameter from URL:', serviceParam);
+    return serviceParam ? [serviceParam] : [];
+  })
   const [selectedDate, setSelectedDate] = useState<Date>()
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [location, setLocation] = useState('')
