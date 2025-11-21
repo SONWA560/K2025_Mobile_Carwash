@@ -178,9 +178,9 @@ export async function GET(request: NextRequest) {
       bookings,
       contracts,
       summary: {
-        pendingBookings: bookings.filter(b => b.paymentStatus === 'PENDING').length,
-        pendingContracts: contracts.filter(c => c.paymentStatus === 'PENDING').length,
-        expiringIn6h: [...bookings, ...contracts].filter(item => 
+        pendingBookings: bookings.filter((b: any) => b.paymentStatus === 'PENDING').length,
+        pendingContracts: contracts.filter((c: any) => c.paymentStatus === 'PENDING').length,
+        expiringIn6h: [...bookings, ...contracts].filter((item: any) => 
           item.invoiceExpiresAt && 
           new Date(item.invoiceExpiresAt) <= new Date(Date.now() + 6 * 60 * 60 * 1000)
         ).length
