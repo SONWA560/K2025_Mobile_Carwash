@@ -59,8 +59,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateContractData(booking: any) {
-  const services = booking.services.map((bs: any) => bs.service)
+function generateContractData(booking: {
+  services: Array<{ service: { tier: string; name: string; id: string } }>;
+  basePrice?: number;
+  user: { name: string | null };
+}) {
+  const services = booking.services.map((bs: { service: { tier: string; name: string; id: string } }) => bs.service)
   
   // Calculate service breakdown
   let standardServiceCount = 0
@@ -90,7 +94,7 @@ function generateContractData(booking: any) {
     date: new Date().toLocaleDateString('en-ZA'),
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-ZA'),
     issuedTo: {
-      name: booking.user.name,
+      name: booking.user.name || 'Valued Customer',
       company: 'Thynk Unlimited',
       address: '123 Anywhere St., Any City'
     },
@@ -125,7 +129,17 @@ function generateContractData(booking: any) {
   }
 }
 
-function generateContractHTML(data: any) {
+function generateContractHTML(data: {
+  invoiceNumber: string;
+  date: string;
+  dueDate: string;
+  issuedTo: { name: string; company: string; address: string };
+  items: Array<{ description: string; quantity: number; rate: number; total: number }>;
+  subtotal: number;
+  tax: number;
+  total: number;
+  paymentInfo: { bankName: string; accountName: string; accountNumber: string };
+}) {
   return `
     <!DOCTYPE html>
     <html>

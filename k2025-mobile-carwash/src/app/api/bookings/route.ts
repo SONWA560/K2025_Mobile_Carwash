@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
-    const where: any = {}
+    const where: Record<string, unknown> = {}
     
     if (status && status !== 'all') {
       where.status = status
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         date: booking.date.toLocaleDateString(),
         time: booking.time,
         location: booking.location,
-        services: booking.services.map(bs => bs.service.name),
+        services: booking.services.map((bs: { service: { name: string } }) => bs.service.name),
         totalPrice: booking.totalPrice,
         notes: booking.notes
       }

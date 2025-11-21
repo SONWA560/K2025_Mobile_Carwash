@@ -23,7 +23,7 @@ interface LocationSelectorProps {
 // Danoon coordinates (base location)
 const BASE_LOCATION = { lat: -26.5375, lng: 31.0989 } // Approximate coordinates for Danoon
 const SERVICE_RADIUS_KM = 20
-const SERVICE_CHARGE_RATE = 50 // R50 per km beyond 20km
+const SERVICE_CHARGE_RATE = 20 // R20 per km beyond 20km
 
 export default function LocationSelector({ onLocationChange, initialLocation }: LocationSelectorProps) {
   const [address, setAddress] = useState(initialLocation || '')
