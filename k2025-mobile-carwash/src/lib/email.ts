@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
+  host: 'smtp.gmail.com',
+  port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: 'gloss.iq.info@gmail.com',
+    pass: process.env.GMAIL_APP_PASSWORD,
   },
 })
 
@@ -20,7 +20,7 @@ interface EmailOptions {
 export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
     const info = await transporter.sendMail({
-      from: `"K2025 Mobile Carwash" <${process.env.EMAIL_USER}>`,
+      from: `"K2025 Mobile Carwash" <gloss.iq.info@gmail.com>`,
       to,
       subject,
       html,
@@ -90,7 +90,7 @@ export function generateBookingConfirmationEmail(bookingData: any) {
         
         <div class="footer">
           <p>K2025 Mobile Carwash</p>
-          <p>Email: info@k2025carwash.co.za | Phone: +27 XX XXX XXXX</p>
+          <p>Email: gloss.iq.info@gmail.com | Phone: 071 869 2274</p>
           <p>© 2025 K2025 Mobile Carwash. All rights reserved.</p>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function generateContractConfirmationEmail(contractData: any) {
         
         <div class="footer">
           <p>K2025 Mobile Carwash</p>
-          <p>Email: info@k2025carwash.co.za | Phone: +27 XX XXX XXXX</p>
+          <p>Email: gloss.iq.info@gmail.com | Phone: 071 869 2274</p>
           <p>© 2025 K2025 Mobile Carwash. All rights reserved.</p>
         </div>
       </div>

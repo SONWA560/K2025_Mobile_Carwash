@@ -46,7 +46,7 @@ export default function HomePage() {
 
       {/* Floating WhatsApp Button */}
       <a 
-        href="https://wa.me/27xxxxxxxxx" 
+        href="https://wa.me/message/EEHXH5L5F5U6J1" 
         className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-colors"
         aria-label="Contact us on WhatsApp"
       >
@@ -126,7 +126,6 @@ export default function HomePage() {
                 <li>Exterior Wash</li>
                 <li>Interior Detailing</li>
                 <li>Paint Protection</li>
-                <li>Contract Packages</li>
               </ul>
             </div>
             <div>
@@ -140,10 +139,10 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4">Contact</h4>
               <ul className="space-y-2 text-gray-400">
-                <li>Phone: +27 XX XXX XXXX</li>
-                <li>Email: info@k2025carwash.co.za</li>
+                <li>Phone: 071 869 2274</li>
+                <li>Email: gloss.iq.info@gmail.com</li>
                 <li>
-                  <a href="https://wa.me/27xxxxxxxxx" className="text-green-400 hover:text-green-300">
+                  <a href="https://wa.me/message/EEHXH5L5F5U6J1" className="text-green-400 hover:text-green-300">
                     WhatsApp Us
                   </a>
                 </li>

@@ -85,6 +85,16 @@ model Booking {
   distance      Float?    // Distance from base location in km
   withinRadius  Boolean?  // Whether within 20km service radius
   
+  // Invoice system fields
+  invoiceNumber String?   @unique
+  invoiceSentAt DateTime?
+  invoiceExpiresAt DateTime?
+  paymentStatus  InvoicePaymentStatus @default(PENDING)
+  paymentMethod  String?   // "EFT", "Cash", "Bank Deposit"
+  paidAt         DateTime?
+  paidAmount     Float?
+  adminNotes     String?
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -108,6 +118,17 @@ model Contract {
   status          ContractStatus @default(ACTIVE)
   contractUrl     String?
   signatureUrl    String?
+  
+  // Invoice system fields
+  invoiceNumber   String?   @unique
+  invoiceSentAt   DateTime?
+  invoiceExpiresAt DateTime?
+  paymentStatus   InvoicePaymentStatus @default(PENDING)
+  paymentMethod   String?   // "EFT", "Cash", "Bank Deposit"
+  paidAt          DateTime?
+  paidAmount      Float?
+  adminNotes      String?
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
@@ -202,6 +223,13 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum InvoicePaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 enum ServiceTier {

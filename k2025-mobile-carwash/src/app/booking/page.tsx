@@ -147,25 +147,60 @@ function BookingPageContent() {
       return
     }
 
-    const bookingData = {
-      services: selectedServices,
-      date: selectedDate.toISOString(),
-      time: selectedTime,
-      location,
-      notes,
-      multipleCars,
-      numberOfCars,
-      vehicleType,
-      customerInfo,
-      locationData,
-      basePrice,
-      serviceCharge,
-      totalPrice
-    }
+    try {
+      // First create the booking
+      const bookingData = {
+        userId: 'temp-user-id', // This would come from authentication
+        date: selectedDate.toISOString(),
+        time: selectedTime,
+        location,
+        notes,
+        multipleCars,
+        numberOfCars,
+        vehicleType,
+        basePrice,
+        serviceCharge,
+        totalPrice,
+        services: selectedServices,
+        locationData
+      }
 
-    // Here you would typically save to database and redirect to payment
-    console.log('Booking data:', bookingData)
-    alert('Booking submitted! (This would redirect to payment in production)')
+      const bookingResponse = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingData)
+      })
+
+      if (!bookingResponse.ok) {
+        const error = await bookingResponse.json()
+        alert('Failed to create booking: ' + error.error)
+        return
+      }
+
+      const bookingResult = await bookingResponse.json()
+
+      // Then generate and send invoice
+      const invoiceResponse = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'booking',
+          bookingId: bookingResult.id
+        })
+      })
+
+      if (invoiceResponse.ok) {
+        alert('Booking confirmed! Invoice sent to your email. Please complete payment within 24 hours.')
+        // Redirect to success page or customer portal
+        window.location.href = '/customer'
+      } else {
+        const error = await invoiceResponse.json()
+        alert('Booking created but failed to send invoice: ' + error.error)
+      }
+    } catch (error) {
+      console.error('Booking submission error:', error)
+      alert('Error submitting booking. Please try again.')
+    }
   }
 
   return (
@@ -608,9 +643,9 @@ function BookingPageContent() {
                    <Button type="button" variant="outline" onClick={() => setCurrentStep(4)}>
                      Previous
                    </Button>
-                    <Button type="submit" className="bg-glossiq-primary hover:bg-opacity-90">
-                     Confirm Booking & Proceed to Payment
-                   </Button>
+                     <Button type="submit" className="bg-glossiq-primary hover:bg-opacity-90">
+                      Confirm Booking & Send Invoice
+                    </Button>
                  </div>
               </CardContent>
             </Card>

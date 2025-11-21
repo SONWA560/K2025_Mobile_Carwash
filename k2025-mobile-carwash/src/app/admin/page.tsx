@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+
 import PaginationAnt from '@/components/ui/pagination-ant'
 import { 
   Calendar, 
-  Users, 
   DollarSign, 
-  Car, 
   FileText, 
   TrendingUp,
   Search,
@@ -24,101 +24,129 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Bell,
+  Send
 } from 'lucide-react'
 
-// Mock data - in real app this would come from API
-const mockBookings = [
-  {
-    id: '1',
-    customerName: 'John Doe',
-    customerEmail: 'john@example.com',
-    customerPhone: '+27 83 123 4567',
-    date: '2025-11-20',
-    time: '10:00',
-    location: '123 Main St, Cape Town',
-    services: ['Exterior Wash & Wax', 'Interior Detailing'],
-    totalPrice: 698,
-    status: 'CONFIRMED',
-    notes: 'Customer has a black SUV'
-  },
-  {
-    id: '2',
-    customerName: 'Jane Smith',
-    customerEmail: 'jane@example.com',
-    customerPhone: '+27 82 987 6543',
-    date: '2025-11-20',
-    time: '14:00',
-    location: '456 Oak Ave, Johannesburg',
-    services: ['Exterior Wash & Wax'],
-    totalPrice: 299,
-    status: 'PENDING',
-    notes: 'First time customer'
-  },
-  {
-    id: '3',
-    customerName: 'Mike Johnson',
-    customerEmail: 'mike@example.com',
-    customerPhone: '+27 81 555 1234',
-    date: '2025-11-19',
-    time: '09:00',
-    location: '789 Pine Rd, Durban',
-    services: ['Paint Protection & Ceramic Coating'],
-    totalPrice: 1299,
-    status: 'COMPLETED',
-    notes: 'Premium service requested'
+interface Booking {
+  id: string
+  user: {
+    id: string
+    name: string
+    email: string
+    phone?: string
   }
-]
+  date: string
+  time: string
+  location: string
+  status: string
+  totalPrice: number
+  notes?: string
+  invoiceNumber?: string
+  paymentStatus?: string
+  invoiceExpiresAt?: string
+  services: Array<{
+    service: {
+      id: string
+      name: string
+      tier: string
+      category: string
+    }
+  }>
+}
 
-const mockContracts = [
-  {
-    id: '1',
-    customerName: 'Sarah Williams',
-    customerEmail: 'sarah@company.co.za',
-    contractType: '10 Wash Premium Package',
-    totalWashes: 10,
-    usedWashes: 3,
-    remainingWashes: 7,
-    totalPrice: 3992,
-    startDate: '2025-10-01',
-    endDate: '2026-10-01',
-    status: 'ACTIVE'
-  },
-  {
-    id: '2',
-    customerName: 'ABC Logistics',
-    customerEmail: 'fleet@abclogistics.co.za',
-    contractType: '20 Wash Ultimate Package',
-    totalWashes: 20,
-    usedWashes: 8,
-    remainingWashes: 12,
-    totalPrice: 7184,
-    startDate: '2025-09-15',
-    endDate: '2027-03-15',
-    status: 'ACTIVE'
-  }
-]
+interface Contract {
+  id: string
+  customerName: string
+  customerEmail: string
+  contractType: string
+  totalWashes: number
+  usedWashes: number
+  remainingWashes: number
+  totalPrice: number
+  startDate: string
+  endDate: string
+  status: string
+  invoiceNumber?: string
+  paymentStatus?: string
+  invoiceExpiresAt?: string
+}
 
-const mockStats = {
-  totalBookings: 156,
-  todayBookings: 8,
-  totalRevenue: 45680,
-  activeContracts: 23,
-  pendingBookings: 12,
-  completedThisMonth: 67
+interface Stats {
+  totalBookings: number
+  todayBookings: number
+  totalRevenue: number
+  activeContracts: number
+  pendingBookings: number
+  completedThisMonth: number
 }
 
 export default function AdminDashboard() {
-  const [bookings, setBookings] = useState(mockBookings)
-  const [contracts, setContracts] = useState(mockContracts)
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [contracts, setContracts] = useState<Contract[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [bookingPage, setBookingPage] = useState(1)
   const [contractPage, setContractPage] = useState(1)
-  const [stats] = useState(mockStats)
+
+  const [stats, setStats] = useState<Stats>({
+    totalBookings: 0,
+    todayBookings: 0,
+    totalRevenue: 0,
+    activeContracts: 0,
+    pendingBookings: 0,
+    completedThisMonth: 0
+  })
+  const [loading, setLoading] = useState(true)
+  const [confirmPaymentDialog, setConfirmPaymentDialog] = useState<{
+    open: boolean
+    type: 'booking' | 'contract'
+    id: string
+    amount: number
+  }>({ open: false, type: 'booking', id: '', amount: 0 })
+  const [paymentMethod, setPaymentMethod] = useState('')
+  const [adminNotes, setAdminNotes] = useState('')
   
   const bookingsPerPage = 10
   const contractsPerPage = 10
+
+  // Fetch bookings data
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`/api/bookings?status=${statusFilter}&search=${searchTerm}&page=${bookingPage}&limit=${bookingsPerPage}`)
+        const data = await response.json()
+        setBookings(data.bookings || [])
+        
+        // Update stats
+        const today = new Date().toDateString()
+        const todayBookings = data.bookings?.filter((b: Booking) => 
+          new Date(b.date).toDateString() === today
+        ) || []
+        const totalRevenue = data.bookings?.reduce((sum: number, b: Booking) => sum + b.totalPrice, 0) || 0
+        const completedThisMonth = data.bookings?.filter((b: Booking) => 
+          b.status === 'COMPLETED' && 
+          new Date(b.date).getMonth() === new Date().getMonth() &&
+          new Date(b.date).getFullYear() === new Date().getFullYear()
+        ).length || 0
+
+        setStats(prev => ({
+          ...prev,
+          totalBookings: data.bookings?.length || 0,
+          todayBookings: todayBookings.length,
+          totalRevenue,
+          completedThisMonth
+        }))
+      } catch (error) {
+        console.error('Failed to fetch bookings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [statusFilter, searchTerm, bookingPage])
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -151,8 +179,8 @@ export default function AdminDashboard() {
   }
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = booking.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         booking.customerEmail.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         booking.user.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || booking.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -166,6 +194,37 @@ export default function AdminDashboard() {
     (contractPage - 1) * contractsPerPage,
     contractPage * contractsPerPage
   )
+
+  const handleConfirmPayment = async () => {
+    try {
+      const response = await fetch('/api/payments/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: confirmPaymentDialog.type,
+          id: confirmPaymentDialog.id,
+          paymentMethod,
+          paidAmount: confirmPaymentDialog.amount,
+          adminNotes
+        })
+      })
+
+      if (response.ok) {
+        alert('Payment confirmed successfully!')
+        setConfirmPaymentDialog({ open: false, type: 'booking', id: '', amount: 0 })
+        setPaymentMethod('')
+        setAdminNotes('')
+        // Refresh data
+        window.location.reload()
+      } else {
+        const error = await response.json()
+        alert('Failed to confirm payment: ' + error.error)
+      }
+    } catch (error) {
+      console.error('Payment confirmation error:', error)
+      alert('Error confirming payment')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -235,6 +294,7 @@ export default function AdminDashboard() {
           <TabsList>
             <TabsTrigger value="bookings">Bookings</TabsTrigger>
             <TabsTrigger value="contracts">Contracts</TabsTrigger>
+            <TabsTrigger value="payments">💳 Payments</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="customers">Customers</TabsTrigger>
           </TabsList>
@@ -291,12 +351,12 @@ export default function AdminDashboard() {
                     <tbody>
                       {paginatedBookings.map((booking) => (
                         <tr key={booking.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2">
-                            <div>
-                              <div className="font-medium">{booking.customerName}</div>
-                              <div className="text-sm text-gray-600">{booking.customerEmail}</div>
-                            </div>
-                          </td>
+                           <td className="p-2">
+                             <div>
+                               <div className="font-medium">{booking.user.name}</div>
+                               <div className="text-sm text-gray-600">{booking.user.email}</div>
+                             </div>
+                           </td>
                           <td className="p-2">
                             <div>
                               <div>{booking.date}</div>
@@ -308,9 +368,9 @@ export default function AdminDashboard() {
                           </td>
                           <td className="p-2">
                             <div className="space-y-1">
-                              {booking.services.map((service, index) => (
+                              {booking.services.map((bookingService: { service: { name: string } }, index: number) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
-                                  {service}
+                                  {bookingService.service.name}
                                 </Badge>
                               ))}
                             </div>
@@ -324,19 +384,43 @@ export default function AdminDashboard() {
                               </div>
                             </Badge>
                           </td>
-                          <td className="p-2">
-                            <div className="flex space-x-2">
-                              <Button size="sm" variant="outline">
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </td>
+                           <td className="p-2">
+                             <div className="flex space-x-2">
+                               <Button size="sm" variant="outline">
+                                 <Eye className="h-3 w-3" />
+                               </Button>
+                               <Button size="sm" variant="outline">
+                                 <Edit className="h-3 w-3" />
+                               </Button>
+                               <Button 
+                                 size="sm" 
+                                 variant="outline"
+                                 onClick={async () => {
+                                   try {
+                                     const response = await fetch('/api/contracts', {
+                                       method: 'POST',
+                                       headers: { 'Content-Type': 'application/json' },
+                                       body: JSON.stringify({ bookingId: booking.id })
+                                     })
+                                     const result = await response.json()
+                                     if (result.success) {
+                                       alert('Contract generated and sent successfully!')
+                                     } else {
+                                       alert('Failed to generate contract: ' + result.error)
+                                     }
+                                    } catch (error) {
+                                      console.error('Error generating contract:', error)
+                                      alert('Error generating contract')
+                                    }
+                                 }}
+                               >
+                                 <FileText className="h-3 w-3" />
+                               </Button>
+                               <Button size="sm" variant="outline">
+                                 <Trash2 className="h-3 w-3" />
+                               </Button>
+                             </div>
+                           </td>
                         </tr>
                        ))}
                     </tbody>
@@ -430,6 +514,211 @@ export default function AdminDashboard() {
                   showQuickJumper={false}
                   onChange={(page) => setContractPage(page)}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                  <div>
+                    <CardTitle>Payment Management</CardTitle>
+                    <CardDescription>Manage invoices and confirm payments</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Bell className="h-4 w-4 mr-2" />
+                      Check Expiring
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Reminders
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Payment Status Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-yellow-500" />
+                        <div>
+                          <p className="text-sm text-gray-600">Pending Invoices</p>
+                          <p className="text-lg font-semibold">
+                            {bookings.filter(b => b.paymentStatus === 'PENDING').length + 
+                             contracts.filter(c => c.paymentStatus === 'PENDING').length}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                        <div>
+                          <p className="text-sm text-gray-600">Expiring Soon</p>
+                          <p className="text-lg font-semibold">
+                            {[...bookings, ...contracts].filter(item => 
+                              item.invoiceExpiresAt && 
+                              new Date(item.invoiceExpiresAt) <= new Date(Date.now() + 6 * 60 * 60 * 1000)
+                            ).length}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <div>
+                          <p className="text-sm text-gray-600">Paid Today</p>
+                          <p className="text-lg font-semibold">0</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <DollarSign className="h-4 w-4 text-blue-500" />
+                        <div>
+                          <p className="text-sm text-gray-600">Total Revenue</p>
+                          <p className="text-lg font-semibold">
+                             R{[...bookings, ...contracts]
+                               .filter(item => item.paymentStatus === 'PAID')
+                               .reduce((sum, item) => sum + item.totalPrice, 0)
+                               .toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Pending Invoices Table */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Pending Invoices</h3>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Invoice #</TableHead>
+                          <TableHead>Customer</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Expires</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...bookings, ...contracts]
+                          .filter(item => item.paymentStatus === 'PENDING')
+                          .map((item) => (
+                            <TableRow key={item.id}>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {'services' in item ? 'Booking' : 'Contract'}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="font-mono text-sm">
+                                {item.invoiceNumber || 'N/A'}
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium">{'user' in item ? item.user?.name || 'N/A' : 'N/A'}</div>
+                                  <div className="text-sm text-gray-600">{'user' in item ? item.user?.email : 'N/A'}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-semibold">
+                                R{item.totalPrice?.toFixed(2)}
+                              </TableCell>
+                              <TableCell>
+                                {item.invoiceExpiresAt ? (
+                                  <Badge variant={new Date(item.invoiceExpiresAt) <= new Date(Date.now() + 6 * 60 * 60 * 1000) ? "destructive" : "secondary"}>
+                                    {new Date(item.invoiceExpiresAt).toLocaleDateString()}
+                                  </Badge>
+                                ) : 'N/A'}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className="bg-yellow-100 text-yellow-800">
+                                  Pending
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Dialog open={confirmPaymentDialog.open && confirmPaymentDialog.id === item.id} onOpenChange={(open) => 
+                                    setConfirmPaymentDialog(open ? { 
+                                      open: true, 
+                                      type: 'services' in item ? 'booking' : 'contract', 
+                                      id: item.id, 
+                                      amount: item.totalPrice || 0 
+                                    } : { open: false, type: 'booking', id: '', amount: 0 })
+                                  }>
+                                    <DialogTrigger asChild>
+                                      <Button size="sm" variant="outline">
+                                        <CheckCircle className="h-3 w-3 mr-1" />
+                                        Confirm
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Confirm Payment</DialogTitle>
+                                        <DialogDescription>
+                                          Confirm payment for {'user' in item ? item.user?.name : 'Customer'} - R{item.totalPrice?.toFixed(2)}
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <label className="text-sm font-medium">Payment Method</label>
+                                          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                                            <SelectTrigger>
+                                              <SelectValue placeholder="Select payment method" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="EFT">EFT</SelectItem>
+                                              <SelectItem value="Cash">Cash</SelectItem>
+                                              <SelectItem value="Bank Deposit">Bank Deposit</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                        <div>
+                                          <label className="text-sm font-medium">Admin Notes</label>
+                                          <Input 
+                                            value={adminNotes}
+                                            onChange={(e) => setAdminNotes(e.target.value)}
+                                            placeholder="Optional notes..."
+                                          />
+                                        </div>
+                                        <div className="flex justify-end space-x-2">
+                                          <Button variant="outline" onClick={() => setConfirmPaymentDialog({ open: false, type: 'booking', id: '', amount: 0 })}>
+                                            Cancel
+                                          </Button>
+                                          <Button onClick={handleConfirmPayment}>
+                                            Confirm Payment
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </DialogContent>
+                                  </Dialog>
+                                  <Button size="sm" variant="outline">
+                                    <Send className="h-3 w-3 mr-1" />
+                                    Remind
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

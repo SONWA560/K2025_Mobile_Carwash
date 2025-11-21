@@ -11,7 +11,7 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Book Now', href: '/booking', icon: Calendar },
   { name: 'Customer Portal', href: '/customer', icon: User },
-  { name: 'WhatsApp', href: 'https://wa.me/27xxxxxxxxx', icon: Phone, external: true },
+  { name: 'WhatsApp', href: 'https://wa.me/message/EEHXH5L5F5U6J1', icon: Phone, external: true },
 ]
 
 export default function MobileNavigation() {
